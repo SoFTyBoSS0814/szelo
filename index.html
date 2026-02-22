@@ -12,9 +12,12 @@ th { background-color: #555; color: white; }
 tr:nth-child(even) { background-color: #eee; }
 .hidden { display: none; }
 button.deleteBtn { background-color: #e74c3c; color: white; border: none; padding: 3px 6px; cursor: pointer; }
+.error { color: red; font-weight: bold; margin-top: 10px; }
+.success { color: green; font-weight: bold; margin-top: 10px; }
 </style>
 </head>
 <body>
+
 <h1>Gyors szelvény bevitel</h1>
 
 <label>Sportág:</label>
@@ -63,31 +66,54 @@ button.deleteBtn { background-color: #e74c3c; color: white; border: none; paddin
 <button onclick="addBet()">Hozzáad a táblázathoz</button>
 <button onclick="exportCSV()">CSV mentés</button>
 
+<div id="message"></div>
+
 <table id="table">
-    <thead>
-        <tr>
-            <th>Sportág</th>
-            <th>Dátum</th>
-            <th>Mérkőzések</th>
-            <th>Kötés?</th>
-            <th>Teljes odds</th>
-            <th>Tét (Ft)</th>
-            <th>GYŐZTES</th>
-            <th>Művelet</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
+<thead>
+<tr>
+<th>Sportág</th>
+<th>Dátum</th>
+<th>Mérkőzések</th>
+<th>Kötés?</th>
+<th>Teljes odds</th>
+<th>Tét (Ft)</th>
+<th>GYŐZTES</th>
+<th>Művelet</th>
+</tr>
+</thead>
+<tbody></tbody>
 </table>
 
 <script>
+
 const bets = [];
+
+/* ======================
+   LOCAL STORAGE
+====================== */
+
+function saveToStorage(){
+    localStorage.setItem('bets', JSON.stringify(bets));
+}
+
+function loadFromStorage(){
+    const data = localStorage.getItem('bets');
+    if(data){
+        bets.push(...JSON.parse(data));
+        renderTable();
+    }
+}
+
+/* ======================
+   UI FUNCTIONS
+====================== */
 
 function toggleCombo(){
     const comboFields = document.getElementById('comboFields');
     comboFields.classList.toggle('hidden');
     document.getElementById('addMatchBtn').disabled = false;
     const matchContainer = document.getElementById('matchContainer');
-    matchContainer.innerHTML = '<label>Mérkőzés 2 / Csapatok:</label><input type="text" class="comboMatch" placeholder="Pl. Uganda-Tanzánia">';
+    matchContainer.innerHTML = '<label>Mérkőzés 2 / Csapatok:</label><input type="text" class="comboMatch">';
 }
 
 function addComboMatch(){
@@ -103,7 +129,6 @@ function addComboMatch(){
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'comboMatch';
-    input.placeholder = `Pl. Meccs ${currentMatches + 2}`;
     container.appendChild(label);
     container.appendChild(input);
 }
@@ -113,7 +138,15 @@ function formatDate(input){
     if(input.value.length > 8) input.value = input.value.slice(0,8);
 }
 
+/* ======================
+   ADD BET
+====================== */
+
 function addBet(){
+
+    const message = document.getElementById('message');
+    message.innerHTML = '';
+
     const sport = document.getElementById('sport').value;
     const dateInput = document.getElementById('date').value.trim();
     const match1 = document.getElementById('match1').value.trim();
@@ -121,7 +154,9 @@ function addBet(){
     let matches = [match1];
 
     if(isCombo){
-        const comboMatches = Array.from(document.querySelectorAll('.comboMatch')).map(i => i.value.trim());
+        const comboMatches = Array.from(document.querySelectorAll('.comboMatch'))
+            .map(i => i.value.trim())
+            .filter(v => v !== '');
         matches = matches.concat(comboMatches);
     }
 
@@ -130,7 +165,7 @@ function addBet(){
     const winner = document.getElementById('winner').value.trim();
 
     if(!match1 || !odds || !stake || dateInput.length !== 8){
-        alert("Kérlek töltsd ki a sportágat, dátumot (8 számjegy), az első mérkőzést, odds-ot és tétet!");
+        message.innerHTML = '<div class="error">Hiányzó vagy hibás adat!</div>';
         return;
     }
 
@@ -147,33 +182,67 @@ function addBet(){
         winner
     };
 
+    /* ======================
+       DUPLICATION CHECK
+    ====================== */
+
+    const exists = bets.some(b => 
+        b.date === dateInput &&
+        JSON.stringify(b.matches) === JSON.stringify(matches) &&
+        b.odds === odds &&
+        b.stake === stake
+    );
+
+    if(exists){
+        message.innerHTML = '<div class="error">Ez a szelvény már létezik!</div>';
+        return;
+    }
+
     bets.push(bet);
+    saveToStorage();
     renderTable();
     resetFields();
+
+    message.innerHTML = '<div class="success">Sikeresen hozzáadva!</div>';
 }
+
+/* ======================
+   TABLE RENDER
+====================== */
 
 function renderTable(){
     bets.sort((a,b) => a.date - b.date);
     const tbody = document.querySelector('#table tbody');
     tbody.innerHTML = '';
+
     bets.forEach((b,index)=>{
         const tr = document.createElement('tr');
         const matchesStr = b.matches.join(' | ');
+
         [b.sport, b.formattedDate, matchesStr, b.isCombo, b.odds, b.stake, b.winner].forEach(v=>{
             const td = document.createElement('td');
             td.textContent = v;
             tr.appendChild(td);
         });
+
         const tdDel = document.createElement('td');
         const btnDel = document.createElement('button');
         btnDel.textContent = 'Törlés';
         btnDel.className = 'deleteBtn';
-        btnDel.onclick = () => { bets.splice(index,1); renderTable(); };
+        btnDel.onclick = () => { 
+            bets.splice(index,1); 
+            saveToStorage();
+            renderTable(); 
+        };
         tdDel.appendChild(btnDel);
         tr.appendChild(tdDel);
         tbody.appendChild(tr);
     });
 }
+
+/* ======================
+   RESET
+====================== */
 
 function resetFields(){
     document.getElementById('date').value = '';
@@ -182,11 +251,13 @@ function resetFields(){
     document.getElementById('stake').value = '';
     document.getElementById('winner').value = '';
     document.getElementById('isCombo').checked = false;
-    const comboFields = document.getElementById('comboFields');
-    comboFields.classList.add('hidden');
+    document.getElementById('comboFields').classList.add('hidden');
     document.getElementById('matchContainer').innerHTML = '';
-    document.getElementById('addMatchBtn').disabled = false;
 }
+
+/* ======================
+   CSV EXPORT
+====================== */
 
 function exportCSV(){
     let csvContent = '';
@@ -208,6 +279,13 @@ function exportCSV(){
     link.download = 'szelvenyek.csv';
     link.click();
 }
+
+/* ======================
+   LOAD ON START
+====================== */
+
+loadFromStorage();
+
 </script>
 </body>
 </html>
