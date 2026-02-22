@@ -1,179 +1,203 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <title>Gyors szelvény bevitel</title>
-    <style>
-        body { font-family: Arial; padding: 20px; background-color: #f9f9f9; }
-        input, button, label, select { margin: 5px; padding: 5px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #999; padding: 8px; text-align: left; }
-        th { background-color: #555; color: white; }
-        tr:nth-child(even) { background-color: #eee; }
-        .hidden { display: none; }
-        button.deleteBtn { background-color: #e74c3c; color: white; border: none; padding: 3px 6px; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<title>Gyors szelvény bevitel</title>
+<style>
+body { font-family: Arial; padding: 20px; background-color: #f9f9f9; }
+input, button, label, select { margin: 5px; padding: 5px; }
+table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+th, td { border: 1px solid #999; padding: 8px; text-align: left; }
+th { background-color: #555; color: white; }
+tr:nth-child(even) { background-color: #eee; }
+.hidden { display: none; }
+button.deleteBtn { background-color: #e74c3c; color: white; border: none; padding: 3px 6px; cursor: pointer; }
+</style>
 </head>
 <body>
-    <h1>Gyors szelvény bevitel</h1>
+<h1>Gyors szelvény bevitel</h1>
 
-    <label>Sportág:</label>
-    <select id="sport">
-        <option value="Krikett">Krikett</option>
-        <option value="Tenisz">Tenisz</option>
-        <option value="Esport">Esport</option>
-        <option value="Kosárlabda">Kosárlabda</option>
-        <option value="Labdarúgás">Labdarúgás</option>
-        <option value="Jégkorong">Jégkorong</option>
-        <option value="MIX">MIX</option>
-        <option value="Baseball">Baseball</option>
-    </select>
+<label>Sportág:</label>
+<select id="sport">
+    <option value="Krikett">Krikett</option>
+    <option value="Tenisz">Tenisz</option>
+    <option value="Esport">Esport</option>
+    <option value="Kosárlabda">Kosárlabda</option>
+    <option value="Labdarúgás">Labdarúgás</option>
+    <option value="Jégkorong">Jégkorong</option>
+    <option value="MIX">MIX</option>
+    <option value="Baseball">Baseball</option>
+</select>
 
-    <label>Dátum (ÉÉÉÉMMDD):</label>
-    <input type="text" id="date" placeholder="20230101" maxlength="8" oninput="formatDate(this)">
+<label>Dátum (ÉÉÉÉMMDD):</label>
+<input type="text" id="date" placeholder="20230101" maxlength="8" oninput="formatDate(this)">
 
-    <label>Mérkőzés 1 / Csapatok:</label>
-    <input type="text" id="match1" placeholder="Pl. Kenya-Ruanda">
+<label>Mérkőzés 1 / Csapatok:</label>
+<input type="text" id="match1" placeholder="Pl. Kenya-Ruanda">
 
-    <label>
-        <input type="checkbox" id="isCombo" onchange="toggleCombo()"> Kötés (több mérkőzés)
-    </label>
+<label>
+<input type="checkbox" id="isCombo" onchange="toggleCombo()"> Kötés (több mérkőzés)
+</label>
 
-    <div id="comboFields" class="hidden">
+<div id="comboFields" class="hidden">
+    <div id="matchContainer">
         <label>Mérkőzés 2 / Csapatok:</label>
-        <input type="text" id="match2" placeholder="Pl. Uganda-Tanzánia">
+        <input type="text" class="comboMatch" placeholder="Pl. Uganda-Tanzánia">
     </div>
+    <button type="button" id="addMatchBtn" onclick="addComboMatch()">Új mérkőzés hozzáadása</button>
+</div>
 
-    <label>Teljes odds:</label>
-    <input type="number" id="odds" step="0.01" placeholder="2.5">
+<label>Teljes odds:</label>
+<input type="number" id="odds" step="0.01" placeholder="2.5">
 
-    <label>Tét (Ft):</label>
-    <input type="number" id="stake" placeholder="50000">
+<label>Tét (Ft):</label>
+<input type="number" id="stake" placeholder="50000">
 
-    <label>GYŐZTES:</label>
-    <input type="text" id="winner" placeholder="Pl. Kenya">
+<label>GYŐZTES:</label>
+<input type="text" id="winner" placeholder="Pl. Kenya">
 
-    <button onclick="addBet()">Hozzáad a táblázathoz</button>
-    <button onclick="exportCSV()">CSV mentés</button>
+<button onclick="addBet()">Hozzáad a táblázathoz</button>
+<button onclick="exportCSV()">CSV mentés</button>
 
-    <table id="table">
-        <thead>
-            <tr>
-                <th>Sportág</th>
-                <th>Dátum</th>
-                <th>Mérkőzés 1</th>
-                <th>Mérkőzés 2 (kötés)</th>
-                <th>Kötés?</th>
-                <th>Teljes odds</th>
-                <th>Tét (Ft)</th>
-                <th>GYŐZTES</th>
-                <th>Művelet</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+<table id="table">
+    <thead>
+        <tr>
+            <th>Sportág</th>
+            <th>Dátum</th>
+            <th>Mérkőzések</th>
+            <th>Kötés?</th>
+            <th>Teljes odds</th>
+            <th>Tét (Ft)</th>
+            <th>GYŐZTES</th>
+            <th>Művelet</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
 
-    <script>
-        const bets = [];
+<script>
+const bets = [];
 
-        function toggleCombo(){
-            document.getElementById('comboFields').classList.toggle('hidden');
-        }
+function toggleCombo(){
+    const comboFields = document.getElementById('comboFields');
+    comboFields.classList.toggle('hidden');
+    document.getElementById('addMatchBtn').disabled = false;
+    const matchContainer = document.getElementById('matchContainer');
+    matchContainer.innerHTML = '<label>Mérkőzés 2 / Csapatok:</label><input type="text" class="comboMatch" placeholder="Pl. Uganda-Tanzánia">';
+}
 
-        function formatDate(input){
-            input.value = input.value.replace(/\D/g,'');
-            if(input.value.length > 8) input.value = input.value.slice(0,8);
-        }
+function addComboMatch(){
+    const container = document.getElementById('matchContainer');
+    const currentMatches = container.querySelectorAll('.comboMatch').length;
+    if(currentMatches >= 5){
+        alert("Maximum 5 mérkőzés lehet egy szelvényen.");
+        document.getElementById('addMatchBtn').disabled = true;
+        return;
+    }
+    const label = document.createElement('label');
+    label.textContent = `Mérkőzés ${currentMatches + 2} / Csapatok:`;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'comboMatch';
+    input.placeholder = `Pl. Meccs ${currentMatches + 2}`;
+    container.appendChild(label);
+    container.appendChild(input);
+}
 
-        function addBet(){
-            const sport = document.getElementById('sport').value;
-            const dateInput = document.getElementById('date').value.trim();
-            const match1 = document.getElementById('match1').value.trim();
-            const match2 = document.getElementById('match2').value.trim();
-            const odds = document.getElementById('odds').value.trim();
-            const stake = document.getElementById('stake').value.trim();
-            const winner = document.getElementById('winner').value.trim();
-            const isCombo = document.getElementById('isCombo').checked ? "Igen" : "Nem";
+function formatDate(input){
+    input.value = input.value.replace(/\D/g,'');
+    if(input.value.length > 8) input.value = input.value.slice(0,8);
+}
 
-            if(!match1 || !odds || !stake || dateInput.length !== 8){
-                alert("Kérlek töltsd ki a sportágat, dátumot (8 számjegy), az első mérkőzést, odds-ot és tétet!");
-                return;
-            }
+function addBet(){
+    const sport = document.getElementById('sport').value;
+    const dateInput = document.getElementById('date').value.trim();
+    const match1 = document.getElementById('match1').value.trim();
+    const isCombo = document.getElementById('isCombo').checked;
+    let matches = [match1];
 
-            const formattedDate = dateInput.slice(0,4) + '.' + dateInput.slice(4,6) + '.' + dateInput.slice(6,8);
+    if(isCombo){
+        const comboMatches = Array.from(document.querySelectorAll('.comboMatch')).map(i => i.value.trim());
+        matches = matches.concat(comboMatches);
+    }
 
-            const bet = {
-                sport,
-                date: dateInput,
-                formattedDate,
-                match1,
-                match2,
-                isCombo,
-                odds,
-                stake,
-                winner
-            };
+    const odds = document.getElementById('odds').value.trim();
+    const stake = document.getElementById('stake').value.trim();
+    const winner = document.getElementById('winner').value.trim();
 
-            bets.push(bet);
-            renderTable();
-            resetFields();
-        }
+    if(!match1 || !odds || !stake || dateInput.length !== 8){
+        alert("Kérlek töltsd ki a sportágat, dátumot (8 számjegy), az első mérkőzést, odds-ot és tétet!");
+        return;
+    }
 
-        function renderTable(){
-            // Rendezés dátum szerint növekvő
-            bets.sort((a,b) => a.date - b.date);
+    const formattedDate = dateInput.slice(0,4) + '.' + dateInput.slice(4,6) + '.' + dateInput.slice(6,8);
 
-            const tbody = document.querySelector('#table tbody');
-            tbody.innerHTML = '';
+    const bet = {
+        sport,
+        date: dateInput,
+        formattedDate,
+        matches,
+        isCombo: isCombo ? "Igen" : "Nem",
+        odds,
+        stake,
+        winner
+    };
 
-            bets.forEach((b, index)=>{
-                const tr = document.createElement('tr');
-                [b.sport, b.formattedDate, b.match1, b.match2, b.isCombo, b.odds, b.stake, b.winner].forEach(v=>{
-                    const td = document.createElement('td');
-                    td.textContent = v;
-                    tr.appendChild(td);
-                });
-                // Törlés gomb
-                const tdDel = document.createElement('td');
-                const btnDel = document.createElement('button');
-                btnDel.textContent = 'Törlés';
-                btnDel.className = 'deleteBtn';
-                btnDel.onclick = () => { 
-                    bets.splice(index, 1); 
-                    renderTable(); 
-                };
-                tdDel.appendChild(btnDel);
-                tr.appendChild(tdDel);
+    bets.push(bet);
+    renderTable();
+    resetFields();
+}
 
-                tbody.appendChild(tr);
-            });
-        }
+function renderTable(){
+    bets.sort((a,b) => a.date - b.date);
+    const tbody = document.querySelector('#table tbody');
+    tbody.innerHTML = '';
+    bets.forEach((b,index)=>{
+        const tr = document.createElement('tr');
+        const matchesStr = b.matches.join(' | ');
+        [b.sport, b.formattedDate, matchesStr, b.isCombo, b.odds, b.stake, b.winner].forEach(v=>{
+            const td = document.createElement('td');
+            td.textContent = v;
+            tr.appendChild(td);
+        });
+        const tdDel = document.createElement('td');
+        const btnDel = document.createElement('button');
+        btnDel.textContent = 'Törlés';
+        btnDel.className = 'deleteBtn';
+        btnDel.onclick = () => { bets.splice(index,1); renderTable(); };
+        tdDel.appendChild(btnDel);
+        tr.appendChild(tdDel);
+        tbody.appendChild(tr);
+    });
+}
 
-        function resetFields(){
-            document.getElementById('date').value = '';
-            document.getElementById('match1').value = '';
-            document.getElementById('match2').value = '';
-            document.getElementById('odds').value = '';
-            document.getElementById('stake').value = '';
-            document.getElementById('winner').value = '';
-            document.getElementById('isCombo').checked = false;
-            document.getElementById('comboFields').classList.add('hidden');
-        }
+function resetFields(){
+    document.getElementById('date').value = '';
+    document.getElementById('match1').value = '';
+    document.getElementById('odds').value = '';
+    document.getElementById('stake').value = '';
+    document.getElementById('winner').value = '';
+    document.getElementById('isCombo').checked = false;
+    const comboFields = document.getElementById('comboFields');
+    comboFields.classList.add('hidden');
+    document.getElementById('matchContainer').innerHTML = '';
+    document.getElementById('addMatchBtn').disabled = false;
+}
 
-        function exportCSV(){
-            const rows = [];
-            const table = document.querySelector('#table');
-            for(let r of table.rows){
-                const cols = Array.from(r.cells).map(c => c.textContent.replace(/,/g, ''));
-                rows.push(cols.join(','));
-            }
-            const csvContent = rows.join('\n');
-            const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'szelvenyek.csv';
-            link.click();
-        }
-    </script>
+function exportCSV(){
+    const rows = [];
+    const table = document.querySelector('#table');
+    for(let r of table.rows){
+        const cols = Array.from(r.cells).map(c => c.textContent.replace(/,/g,''));
+        rows.push(cols.join(','));
+    }
+    const csvContent = rows.join('\n');
+    const blob = new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'szelvenyek.csv';
+    link.click();
+}
+</script>
 </body>
 </html>
