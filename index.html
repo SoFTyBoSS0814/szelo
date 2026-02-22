@@ -5,7 +5,7 @@
     <title>Gyors szelvény bevitel</title>
     <style>
         body { font-family: Arial; padding: 20px; background-color: #f9f9f9; }
-        input, button, label { margin: 5px; padding: 5px; }
+        input, button, label, select { margin: 5px; padding: 5px; }
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
         th, td { border: 1px solid #999; padding: 8px; text-align: left; }
         th { background-color: #555; color: white; }
@@ -15,6 +15,16 @@
 </head>
 <body>
     <h1>Gyors szelvény bevitel</h1>
+
+    <label>Sportág:</label>
+    <select id="sport">
+        <option value="Krikett">Krikett</option>
+        <option value="Tenisz">Tenisz</option>
+        <option value="Esport">Esport</option>
+        <option value="Kosárlabda">Kosárlabda</option>
+        <option value="Labdarúgás">Labdarúgás</option>
+        <option value="Jégkorong">Jégkorong</option>
+    </select>
 
     <label>Mérkőzés 1 / Csapatok:</label>
     <input type="text" id="match1" placeholder="Pl. Kenya-Ruanda">
@@ -40,6 +50,7 @@
     <table id="table">
         <thead>
             <tr>
+                <th>Sportág</th>
                 <th>Mérkőzés 1</th>
                 <th>Mérkőzés 2 (kötés)</th>
                 <th>Kötés?</th>
@@ -57,6 +68,7 @@
         }
 
         function addBet(){
+            const sport = document.getElementById('sport').value;
             const match1 = document.getElementById('match1').value.trim();
             const match2 = document.getElementById('match2').value.trim();
             const odds = document.getElementById('odds').value.trim();
@@ -70,7 +82,7 @@
 
             const tbody = document.querySelector('#table tbody');
             const tr = document.createElement('tr');
-            [match1, match2, isCombo, odds, stake].forEach(v=>{
+            [sport, match1, match2, isCombo, odds, stake].forEach(v=>{
                 const td = document.createElement('td');
                 td.textContent = v;
                 tr.appendChild(td);
