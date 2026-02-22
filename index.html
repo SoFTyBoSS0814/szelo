@@ -185,14 +185,20 @@ function resetFields(){
 }
 
 function exportCSV(){
-    const rows = [];
-    const table = document.querySelector('#table');
-    for(let r of table.rows){
-        const cols = Array.from(r.cells).map(c => c.textContent.replace(/,/g,''));
-        rows.push(cols.join(','));
-    }
-    const csvContent = rows.join('\n');
-    const blob = new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
+    let csvContent = '';
+    bets.forEach(b=>{
+        csvContent += `Sportág: ${b.sport}\n`;
+        csvContent += `Dátum: ${b.formattedDate}\n`;
+        csvContent += `Mérkőzések: ${b.matches.join(' | ')}\n`;
+        if(b.isCombo === "Igen"){
+            csvContent += `Kötés?: ${b.isCombo}\n`;
+        }
+        csvContent += `Teljes odds: ${b.odds}\n`;
+        csvContent += `Tét (Ft): ${b.stake}\n`;
+        csvContent += `GYŐZTES: ${b.winner}\n\n`;
+    });
+
+    const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'szelvenyek.csv';
