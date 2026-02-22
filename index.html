@@ -2,66 +2,73 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Gyors fogadás - One Click</title>
+    <title>Gyors szelvény bevitel</title>
     <style>
         body { font-family: Arial; padding: 20px; background-color: #f9f9f9; }
-        h1 { color: #333; }
-        .match-btn { margin: 5px; padding: 10px 15px; cursor: pointer; background-color: #007BFF; color: white; border: none; border-radius: 5px; }
-        .match-btn:hover { background-color: #0056b3; }
+        input, button { margin: 5px; padding: 5px; }
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
         th, td { border: 1px solid #999; padding: 8px; text-align: left; }
         th { background-color: #555; color: white; }
         tr:nth-child(even) { background-color: #eee; }
-        button { margin: 5px; padding: 5px 10px; }
     </style>
 </head>
 <body>
-    <h1>Gyors szelvény rögzítés (One Click)</h1>
-    
-    <p>Kattints a mérkőzésre a szelvényhez:</p>
-    <div id="matches">
-        <!-- Demo mérkőzések gombokként -->
-        <button class="match-btn" data-sport="Krikett" data-match="Guyana vs Trinbago" data-odds="1.5" data-stake="50000">Guyana vs Trinbago</button>
-        <button class="match-btn" data-sport="Krikett" data-match="Barbados vs Jamaica" data-odds="1.8" data-stake="50000">Barbados vs Jamaica</button>
-        <button class="match-btn" data-sport="Tenisz" data-match="Nadal vs Djokovic" data-odds="2.0" data-stake="30000">Nadal vs Djokovic</button>
-        <button class="match-btn" data-sport="Snooker" data-match="Maguire vs Allen" data-odds="1.7" data-stake="20000">Maguire vs Allen</button>
-        <button class="match-btn" data-sport="Esport" data-match="T1 vs GenG" data-odds="1.6" data-stake="10000">T1 vs GenG</button>
-    </div>
-    
+    <h1>Gyors szelvény bevitel</h1>
+
+    <label>Mérkőzés / Csapatok (pl. Kenya-Ruanda):</label>
+    <input type="text" id="match" placeholder="Csapat1 vs Csapat2">
+
+    <label>Második mérkőzés / Csapatok (opcionális, kötéshez):</label>
+    <input type="text" id="match2" placeholder="Csapat3 vs Csapat4">
+
+    <label>Odds (pl. 1.8 vagy 2.5 a kötéshez):</label>
+    <input type="text" id="odds" placeholder="1.8">
+
+    <label>Tét (Ft):</label>
+    <input type="number" id="stake" placeholder="50000">
+
+    <button onclick="addBet()">Hozzáad a táblázathoz</button>
+    <button onclick="exportCSV()">CSV mentés</button>
+
     <table id="table">
         <thead>
             <tr>
-                <th>Sportág</th>
-                <th>Mérkőzés / Csapatok</th>
+                <th>Mérkőzés 1</th>
+                <th>Mérkőzés 2 (kötés)</th>
                 <th>Odds</th>
                 <th>Tét (Ft)</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
-    
-    <button onclick="exportCSV()">CSV mentés</button>
 
     <script>
-        const buttons = document.querySelectorAll('.match-btn');
-        const tbody = document.querySelector('#table tbody');
+        function addBet(){
+            const match1 = document.getElementById('match').value.trim();
+            const match2 = document.getElementById('match2').value.trim();
+            const odds = document.getElementById('odds').value.trim();
+            const stake = document.getElementById('stake').value.trim();
 
-        buttons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const sport = btn.dataset.sport;
-                const match = btn.dataset.match;
-                const odds = btn.dataset.odds;
-                const stake = btn.dataset.stake;
+            if(!match1 || !odds || !stake){
+                alert("Kérlek töltsd ki legalább az első mérkőzést, odds-ot és tétet!");
+                return;
+            }
 
-                const tr = document.createElement('tr');
-                [sport, match, odds, stake].forEach(v => {
-                    const td = document.createElement('td');
-                    td.textContent = v;
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
+            const tbody = document.querySelector('#table tbody');
+            const tr = document.createElement('tr');
+            [match1, match2, odds, stake].forEach(v=>{
+                const td = document.createElement('td');
+                td.textContent = v;
+                tr.appendChild(td);
             });
-        });
+            tbody.appendChild(tr);
+
+            // Reset
+            document.getElementById('match').value = '';
+            document.getElementById('match2').value = '';
+            document.getElementById('odds').value = '';
+            document.getElementById('stake').value = '';
+        }
 
         function exportCSV(){
             const rows = [];
