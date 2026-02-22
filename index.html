@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Gyors fogadás - One Click</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background-color: #f9f9f9; }
+        h1 { color: #333; }
+        .match-btn { margin: 5px; padding: 10px 15px; cursor: pointer; background-color: #007BFF; color: white; border: none; border-radius: 5px; }
+        .match-btn:hover { background-color: #0056b3; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #999; padding: 8px; text-align: left; }
+        th { background-color: #555; color: white; }
+        tr:nth-child(even) { background-color: #eee; }
+        button { margin: 5px; padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <h1>Gyors szelvény rögzítés (One Click)</h1>
+    
+    <p>Kattints a mérkőzésre a szelvényhez:</p>
+    <div id="matches">
+        <!-- Demo mérkőzések gombokként -->
+        <button class="match-btn" data-sport="Krikett" data-match="Guyana vs Trinbago" data-odds="1.5" data-stake="50000">Guyana vs Trinbago</button>
+        <button class="match-btn" data-sport="Krikett" data-match="Barbados vs Jamaica" data-odds="1.8" data-stake="50000">Barbados vs Jamaica</button>
+        <button class="match-btn" data-sport="Tenisz" data-match="Nadal vs Djokovic" data-odds="2.0" data-stake="30000">Nadal vs Djokovic</button>
+        <button class="match-btn" data-sport="Snooker" data-match="Maguire vs Allen" data-odds="1.7" data-stake="20000">Maguire vs Allen</button>
+        <button class="match-btn" data-sport="Esport" data-match="T1 vs GenG" data-odds="1.6" data-stake="10000">T1 vs GenG</button>
+    </div>
+    
+    <table id="table">
+        <thead>
+            <tr>
+                <th>Sportág</th>
+                <th>Mérkőzés / Csapatok</th>
+                <th>Odds</th>
+                <th>Tét (Ft)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    
+    <button onclick="exportCSV()">CSV mentés</button>
+
+    <script>
+        const buttons = document.querySelectorAll('.match-btn');
+        const tbody = document.querySelector('#table tbody');
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sport = btn.dataset.sport;
+                const match = btn.dataset.match;
+                const odds = btn.dataset.odds;
+                const stake = btn.dataset.stake;
+
+                const tr = document.createElement('tr');
+                [sport, match, odds, stake].forEach(v => {
+                    const td = document.createElement('td');
+                    td.textContent = v;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        });
+
+        function exportCSV(){
+            const rows = [];
+            const table = document.querySelector('#table');
+            for(let r of table.rows){
+                const cols = Array.from(r.cells).map(c => c.textContent.replace(/,/g, ''));
+                rows.push(cols.join(','));
+            }
+            const csvContent = rows.join('\n');
+            const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'szelvenyek.csv';
+            link.click();
+        }
+    </script>
+</body>
+</html>
