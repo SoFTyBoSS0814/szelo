@@ -5,24 +5,31 @@
     <title>Gyors szelvény bevitel</title>
     <style>
         body { font-family: Arial; padding: 20px; background-color: #f9f9f9; }
-        input, button { margin: 5px; padding: 5px; }
+        input, button, label { margin: 5px; padding: 5px; }
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
         th, td { border: 1px solid #999; padding: 8px; text-align: left; }
         th { background-color: #555; color: white; }
         tr:nth-child(even) { background-color: #eee; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <h1>Gyors szelvény bevitel</h1>
 
-    <label>Mérkőzés / Csapatok (pl. Kenya-Ruanda):</label>
-    <input type="text" id="match" placeholder="Csapat1 vs Csapat2">
+    <label>Mérkőzés 1 / Csapatok:</label>
+    <input type="text" id="match1" placeholder="Pl. Kenya-Ruanda">
 
-    <label>Második mérkőzés / Csapatok (opcionális, kötéshez):</label>
-    <input type="text" id="match2" placeholder="Csapat3 vs Csapat4">
+    <label>
+        <input type="checkbox" id="isCombo" onchange="toggleCombo()"> Kötés (több mérkőzés)
+    </label>
 
-    <label>Odds (pl. 1.8 vagy 2.5 a kötéshez):</label>
-    <input type="text" id="odds" placeholder="1.8">
+    <div id="comboFields" class="hidden">
+        <label>Mérkőzés 2 / Csapatok:</label>
+        <input type="text" id="match2" placeholder="Pl. Uganda-Tanzánia">
+    </div>
+
+    <label>Teljes odds:</label>
+    <input type="number" id="odds" step="0.01" placeholder="2.5">
 
     <label>Tét (Ft):</label>
     <input type="number" id="stake" placeholder="50000">
@@ -35,7 +42,8 @@
             <tr>
                 <th>Mérkőzés 1</th>
                 <th>Mérkőzés 2 (kötés)</th>
-                <th>Odds</th>
+                <th>Kötés?</th>
+                <th>Teljes odds</th>
                 <th>Tét (Ft)</th>
             </tr>
         </thead>
@@ -43,11 +51,17 @@
     </table>
 
     <script>
+        function toggleCombo(){
+            const comboFields = document.getElementById('comboFields');
+            comboFields.classList.toggle('hidden');
+        }
+
         function addBet(){
-            const match1 = document.getElementById('match').value.trim();
+            const match1 = document.getElementById('match1').value.trim();
             const match2 = document.getElementById('match2').value.trim();
             const odds = document.getElementById('odds').value.trim();
             const stake = document.getElementById('stake').value.trim();
+            const isCombo = document.getElementById('isCombo').checked ? "Igen" : "Nem";
 
             if(!match1 || !odds || !stake){
                 alert("Kérlek töltsd ki legalább az első mérkőzést, odds-ot és tétet!");
@@ -56,7 +70,7 @@
 
             const tbody = document.querySelector('#table tbody');
             const tr = document.createElement('tr');
-            [match1, match2, odds, stake].forEach(v=>{
+            [match1, match2, isCombo, odds, stake].forEach(v=>{
                 const td = document.createElement('td');
                 td.textContent = v;
                 tr.appendChild(td);
@@ -64,10 +78,12 @@
             tbody.appendChild(tr);
 
             // Reset
-            document.getElementById('match').value = '';
+            document.getElementById('match1').value = '';
             document.getElementById('match2').value = '';
             document.getElementById('odds').value = '';
             document.getElementById('stake').value = '';
+            document.getElementById('isCombo').checked = false;
+            document.getElementById('comboFields').classList.add('hidden');
         }
 
         function exportCSV(){
