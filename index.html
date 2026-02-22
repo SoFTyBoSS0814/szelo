@@ -25,6 +25,7 @@
         <option value="Labdarúgás">Labdarúgás</option>
         <option value="Jégkorong">Jégkorong</option>
         <option value="MIX">MIX</option>
+        <option value="Baseball">Baseball</option>
     </select>
 
     <label>Dátum (ÉÉÉÉMMDD):</label>
@@ -71,7 +72,7 @@
     </table>
 
     <script>
-        const bets = []; // ide tároljuk az összes szelvényt
+        const bets = [];
 
         function toggleCombo(){
             const comboFields = document.getElementById('comboFields');
@@ -79,7 +80,7 @@
         }
 
         function formatDate(input){
-            input.value = input.value.replace(/\D/g,''); // csak szám
+            input.value = input.value.replace(/\D/g,'');
             if(input.value.length > 8) input.value = input.value.slice(0,8);
         }
 
@@ -100,10 +101,9 @@
 
             const formattedDate = dateInput.slice(0,4) + '.' + dateInput.slice(4,6) + '.' + dateInput.slice(6,8);
 
-            // Új szelvény objektum
             const bet = {
-                sport, 
-                date: dateInput, // szám formátumban tároljuk a rendezéshez
+                sport,
+                date: dateInput,
                 formattedDate,
                 match1,
                 match2,
@@ -114,11 +114,8 @@
             };
 
             bets.push(bet);
-
-            // Rendezés dátum szerint növekvő
             bets.sort((a,b) => a.date - b.date);
 
-            // Táblázat újraépítése
             const tbody = document.querySelector('#table tbody');
             tbody.innerHTML = '';
             bets.forEach(b=>{
@@ -131,7 +128,6 @@
                 tbody.appendChild(tr);
             });
 
-            // Reset mezők
             document.getElementById('date').value = '';
             document.getElementById('match1').value = '';
             document.getElementById('match2').value = '';
