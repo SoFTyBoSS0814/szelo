@@ -67,44 +67,65 @@
     </table>
 
     <script>
+        const bets = []; // ide tároljuk az összes szelvényt
+
         function toggleCombo(){
             const comboFields = document.getElementById('comboFields');
             comboFields.classList.toggle('hidden');
         }
 
         function formatDate(input){
-            // Csak számjegyeket engedélyez
-            input.value = input.value.replace(/\D/g,'');
+            input.value = input.value.replace(/\D/g,''); // csak szám
             if(input.value.length > 8) input.value = input.value.slice(0,8);
         }
 
         function addBet(){
             const sport = document.getElementById('sport').value;
-            let date = document.getElementById('date').value.trim();
+            const dateInput = document.getElementById('date').value.trim();
             const match1 = document.getElementById('match1').value.trim();
             const match2 = document.getElementById('match2').value.trim();
             const odds = document.getElementById('odds').value.trim();
             const stake = document.getElementById('stake').value.trim();
             const isCombo = document.getElementById('isCombo').checked ? "Igen" : "Nem";
 
-            if(!match1 || !odds || !stake || date.length !== 8){
+            if(!match1 || !odds || !stake || dateInput.length !== 8){
                 alert("Kérlek töltsd ki a sportágat, dátumot (8 számjegy), az első mérkőzést, odds-ot és tétet!");
                 return;
             }
 
-            // Formázott dátum: 20230101 -> 2023.01.01
-            const formattedDate = date.slice(0,4) + '.' + date.slice(4,6) + '.' + date.slice(6,8);
+            const formattedDate = dateInput.slice(0,4) + '.' + dateInput.slice(4,6) + '.' + dateInput.slice(6,8);
 
+            // Új szelvény objektum
+            const bet = {
+                sport, 
+                date: dateInput, // szám formátumban tároljuk a rendezéshez
+                formattedDate,
+                match1,
+                match2,
+                isCombo,
+                odds,
+                stake
+            };
+
+            bets.push(bet);
+
+            // Rendezés dátum szerint növekvő
+            bets.sort((a,b) => a.date - b.date);
+
+            // Táblázat újraépítése
             const tbody = document.querySelector('#table tbody');
-            const tr = document.createElement('tr');
-            [sport, formattedDate, match1, match2, isCombo, odds, stake].forEach(v=>{
-                const td = document.createElement('td');
-                td.textContent = v;
-                tr.appendChild(td);
+            tbody.innerHTML = '';
+            bets.forEach(b=>{
+                const tr = document.createElement('tr');
+                [b.sport, b.formattedDate, b.match1, b.match2, b.isCombo, b.odds, b.stake].forEach(v=>{
+                    const td = document.createElement('td');
+                    td.textContent = v;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
             });
-            tbody.appendChild(tr);
 
-            // Reset
+            // Reset mezők
             document.getElementById('date').value = '';
             document.getElementById('match1').value = '';
             document.getElementById('match2').value = '';
