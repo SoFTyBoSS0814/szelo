@@ -5,7 +5,8 @@
 <title>Gyors szelvény bevitel</title>
 <style>
 body { font-family: Arial; padding: 20px; background-color: #f9f9f9; }
-input, button, label, select { margin: 5px; padding: 5px; }
+input, button, label, select { margin: 5px; padding: 5px; display: inline-block; }
+.form-group { margin-bottom: 10px; }
 table { border-collapse: collapse; width: 100%; margin-top: 20px; }
 th, td { border: 1px solid #999; padding: 8px; text-align: left; }
 th { background-color: #555; color: white; }
@@ -14,57 +15,69 @@ tr:nth-child(even) { background-color: #eee; }
 button.deleteBtn { background-color: #e74c3c; color: white; border: none; padding: 3px 6px; cursor: pointer; }
 .error { color: red; font-weight: bold; margin-top: 10px; }
 .success { color: green; font-weight: bold; margin-top: 10px; }
+.match-row { background: #eef2f5; padding: 8px; margin: 5px 0; border-radius: 4px; }
 </style>
 </head>
 <body>
 
 <h1>Gyors szelvény bevitel</h1>
 
-<label>Sportág:</label>
-<select id="sport">
-    <option value="Krikett">Krikett</option>
-    <option value="Tenisz">Tenisz</option>
-    <option value="Esport">Esport</option>
-    <option value="Kosárlabda">Kosárlabda</option>
-    <option value="Labdarúgás">Labdarúgás</option>
-    <option value="Jégkorong">Jégkorong</option>
-    <option value="Baseball">Baseball</option>
-    <option value="Darts">Darts</option>
-    <option value="Snooker">Snooker</option>
-    <option value="Bowls">Bowls</option>
-    <option value="Egyéb">Egyéb</option>
-    <option value="MIX">MIX</option>
-</select>
+<form id="betForm" onsubmit="event.preventDefault(); addBet();">
 
-<label>Dátum (ÉÉÉÉMMDD):</label>
-<input type="text" id="date" placeholder="20230101" maxlength="8" oninput="formatDate(this)">
-
-<label>Mérkőzés 1 / Csapatok:</label>
-<input type="text" id="match1" placeholder="Pl. Kenya-Ruanda">
-
-<label>
-<input type="checkbox" id="isCombo" onchange="toggleCombo()"> Kötés (több mérkőzés)
-</label>
-
-<div id="comboFields" class="hidden">
-    <div id="matchContainer">
-        <label>Mérkőzés 2 / Csapatok:</label>
-        <input type="text" class="comboMatch" placeholder="Pl. Uganda-Tanzánia">
-    </div>
-    <button type="button" id="addMatchBtn" onclick="addComboMatch()">Új mérkőzés hozzáadása</button>
+<div class="form-group">
+    <label>
+        <input type="checkbox" id="isCombo" tabindex="1" onchange="toggleCombo()"> Kötés (Kombi?)
+    </label>
+    
+    <label>Tét (Ft):</label>
+    <input type="number" id="stake" tabindex="2" placeholder="50000">
 </div>
 
-<label>Teljes odds:</label>
-<input type="number" id="odds" step="0.01" placeholder="2.5">
+<div class="form-group">
+    <label>Sportág:</label>
+    <select id="sport" tabindex="3">
+        <option value="Krikett">Krikett</option>
+        <option value="Tenisz">Tenisz</option>
+        <option value="Esport">Esport</option>
+        <option value="Kosárlabda">Kosárlabda</option>
+        <option value="Labdarúgás">Labdarúgás</option>
+        <option value="Jégkorong">Jégkorong</option>
+        <option value="Baseball">Baseball</option>
+        <option value="Darts">Darts</option>
+        <option value="Snooker">Snooker</option>
+        <option value="Bowls">Bowls</option>
+        <option value="Egyéb">Egyéb</option>
+        <option value="MIX">MIX</option>
+    </select>
+</div>
 
-<label>Tét (Ft):</label>
-<input type="number" id="stake" placeholder="50000">
+<div class="match-row">
+    <label>Mérkőzés 1 / Csapatok:</label>
+    <input type="text" id="match1" tabindex="4" placeholder="Pl. Kenya-Ruanda">
+    <label>Mérkőzés 1 Odds:</label>
+    <input type="number" id="match1Odds" class="matchOdds" tabindex="5" step="0.01" placeholder="1.50" oninput="calculateTotalOdds()">
+</div>
 
-<label>GYŐZTES:</label>
-<input type="text" id="winner" placeholder="Pl. Kenya">
+<div id="comboFields" class="hidden">
+    <div id="matchContainer"></div>
+    <button type="button" id="addMatchBtn" tabindex="15" onclick="addComboMatch()">Új mérkőzés hozzáadása</button>
+</div>
 
-<button onclick="addBet()">Hozzáad a táblázathoz</button>
-<button onclick="exportCSV()">CSV mentés</button>
+<div class="form-group">
+    <label>Teljes odds (Összesített):</label>
+    <input type="number" id="odds" tabindex="16" step="0.01" placeholder="2.5">
+
+    <label>Dátum (ÉÉÉÉMMDD):</label>
+    <input type="text" id="date" tabindex="17" placeholder="20230101" maxlength="8" oninput="formatDate(this)">
+
+    <label>GYŐZTES:</label>
+    <input type="text" id="winner" tabindex="18" placeholder="Pl. Kenya">
+</div>
+
+<button type="submit" id="submitBtn" tabindex="19">Hozzáad a táblázathoz</button>
+<button type="button" onclick="exportCSV()" tabindex="20">CSV mentés</button>
+
+</form>
 
 <div id="message"></div>
 
@@ -73,7 +86,7 @@ button.deleteBtn { background-color: #e74c3c; color: white; border: none; paddin
 <tr>
 <th>Sportág</th>
 <th>Dátum</th>
-<th>Mérkőzések</th>
+<th>Mérkőzések (Odds)</th>
 <th>Kötés?</th>
 <th>Teljes odds</th>
 <th>Tét (Ft)</th>
@@ -85,7 +98,6 @@ button.deleteBtn { background-color: #e74c3c; color: white; border: none; paddin
 </table>
 
 <script>
-
 const bets = [];
 
 /* ======================
@@ -105,32 +117,72 @@ function loadFromStorage(){
 }
 
 /* ======================
-   UI FUNCTIONS
+   UI & NAVIGATION FUNCTIONS
 ====================== */
 
+function calculateTotalOdds() {
+    const isCombo = document.getElementById('isCombo').checked;
+    const match1Odds = parseFloat(document.getElementById('match1Odds').value);
+
+    if (!isCombo) {
+        if (!isNaN(match1Odds)) {
+            document.getElementById('odds').value = match1Odds.toFixed(2);
+        }
+        return;
+    }
+
+    let total = isNaN(match1Odds) ? 1 : match1Odds;
+    const comboOddsInputs = document.querySelectorAll('.comboMatchOdds');
+    comboOddsInputs.forEach(input => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+            total *= val;
+        }
+    });
+
+    document.getElementById('odds').value = total.toFixed(2);
+}
+
 function toggleCombo(){
+    const isCombo = document.getElementById('isCombo').checked;
     const comboFields = document.getElementById('comboFields');
-    comboFields.classList.toggle('hidden');
-    document.getElementById('addMatchBtn').disabled = false;
-    const matchContainer = document.getElementById('matchContainer');
-    matchContainer.innerHTML = '<label>Mérkőzés 2 / Csapatok:</label><input type="text" class="comboMatch">';
+    const container = document.getElementById('matchContainer');
+
+    if (isCombo) {
+        comboFields.classList.remove('hidden');
+        document.getElementById('addMatchBtn').disabled = false;
+        if (container.children.length === 0) {
+            addComboMatch();
+        }
+    } else {
+        comboFields.classList.add('hidden');
+        container.innerHTML = '';
+        calculateTotalOdds();
+    }
 }
 
 function addComboMatch(){
     const container = document.getElementById('matchContainer');
     const currentMatches = container.querySelectorAll('.comboMatch').length;
-    if(currentMatches >= 5){
+    if(currentMatches >= 4){
         alert("Maximum 5 mérkőzés lehet egy szelvényen.");
         document.getElementById('addMatchBtn').disabled = true;
         return;
     }
-    const label = document.createElement('label');
-    label.textContent = `Mérkőzés ${currentMatches + 2} / Csapatok:`;
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'comboMatch';
-    container.appendChild(label);
-    container.appendChild(input);
+
+    const matchIndex = currentMatches + 2;
+    const tabMatch = 4 + (currentMatches + 1) * 2;
+    const tabOdds = tabMatch + 1;
+
+    const div = document.createElement('div');
+    div.className = 'match-row';
+    div.innerHTML = `
+        <label>Mérkőzés ${matchIndex} / Csapatok:</label>
+        <input type="text" class="comboMatch" tabindex="${tabMatch}" placeholder="Pl. Uganda-Tanzánia">
+        <label>Mérkőzés ${matchIndex} Odds:</label>
+        <input type="number" step="0.01" class="comboMatchOdds matchOdds" tabindex="${tabOdds}" placeholder="1.80" oninput="calculateTotalOdds()">
+    `;
+    container.appendChild(div);
 }
 
 function formatDate(input){
@@ -143,21 +195,26 @@ function formatDate(input){
 ====================== */
 
 function addBet(){
-
     const message = document.getElementById('message');
     message.innerHTML = '';
 
     const sport = document.getElementById('sport').value;
     const dateInput = document.getElementById('date').value.trim();
     const match1 = document.getElementById('match1').value.trim();
+    const match1Odds = document.getElementById('match1Odds').value.trim();
     const isCombo = document.getElementById('isCombo').checked;
-    let matches = [match1];
+
+    let matches = [match1Odds ? `${match1} (${match1Odds})` : match1];
 
     if(isCombo){
-        const comboMatches = Array.from(document.querySelectorAll('.comboMatch'))
-            .map(i => i.value.trim())
-            .filter(v => v !== '');
-        matches = matches.concat(comboMatches);
+        const comboRows = document.querySelectorAll('#matchContainer .match-row');
+        comboRows.forEach(row => {
+            const mVal = row.querySelector('.comboMatch').value.trim();
+            const oVal = row.querySelector('.comboMatchOdds').value.trim();
+            if(mVal) {
+                matches.push(oVal ? `${mVal} (${oVal})` : mVal);
+            }
+        });
     }
 
     const odds = document.getElementById('odds').value.trim();
@@ -182,10 +239,7 @@ function addBet(){
         winner
     };
 
-    /* ======================
-       DUPLICATION CHECK
-    ====================== */
-
+    /* DUPLICATION CHECK */
     const exists = bets.some(b => 
         b.date === dateInput &&
         JSON.stringify(b.matches) === JSON.stringify(matches) &&
@@ -204,6 +258,9 @@ function addBet(){
     resetFields();
 
     message.innerHTML = '<div class="success">Sikeresen hozzáadva!</div>';
+
+    // Visszaugrik a fókusz az első mezőre a gyors Tab-os adatbevitelt folytatva
+    document.getElementById('isCombo').focus();
 }
 
 /* ======================
@@ -247,6 +304,7 @@ function renderTable(){
 function resetFields(){
     document.getElementById('date').value = '';
     document.getElementById('match1').value = '';
+    document.getElementById('match1Odds').value = '';
     document.getElementById('odds').value = '';
     document.getElementById('stake').value = '';
     document.getElementById('winner').value = '';
@@ -280,12 +338,7 @@ function exportCSV(){
     link.click();
 }
 
-/* ======================
-   LOAD ON START
-====================== */
-
 loadFromStorage();
-
 </script>
 </body>
 </html>
